@@ -3,16 +3,12 @@ name: BXRL78 GHA CI
 on:
   workflow_dispatch:
   push:
-    paths-ignore:
-      - 'README.md'
-      - '.github/workflows/cxarm.yml'
 
 env:
-  threads: 12
+  threads: 4
 
 jobs:
-    build-bx:
-        name: Build with BXRL78
+    build-bxrl78:
         runs-on: [ self-hosted, linux ]
         container:
             image: ghcr.io/fae-emea/bxrl78
@@ -24,7 +20,6 @@ jobs:
               with:
                 repository: iarsystems/ewp-workspaces-ci
             - run:  /opt/iarsystems/bxrl78/rl78/bin/iccrl78 --version
-            - run: ls -lR
             - run: |
                 /opt/iarsystems/bxrl78/common/bin/iarbuild \
                   targets/rl78/library.ewp -build "Debug" -log all -parallel ${{ env.threads }}
