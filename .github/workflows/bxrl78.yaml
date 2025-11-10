@@ -1,0 +1,38 @@
+name: BXRL78 GHA CI
+
+on:
+  schedule:
+    - cron: '40 */2 * * *'    
+  workflow_dispatch:
+  push:
+    paths-ignore:
+      - 'README.md'
+      - '.github/workflows/cxarm.yml'
+
+env:
+  threads: 12
+
+jobs:
+    build-bx:
+        name: Build with BXRL78
+        runs-on: [ self-hosted, linux ]
+        container:
+            image: ghcr.io/fae-emea/bxrl78
+            options: "--hostname rl78-build-agent-007"
+            volumes:
+            - LMS2:/usr/local/etc/IARSystems
+        steps:
+            - uses: actions/checkout@v5
+              with:
+                repository: iarsystems/ewp-workspaces-ci
+            - run:  /opt/iarsystems/bxrl78/rl78/bin/iccrl78 --version
+            - run: ls -lR
+            - run: |
+                /opt/iarsystems/bxrl78/common/bin/iarbuild \
+                  targets/rl78/library.ewp -build "Debug" -log all -parallel ${{ env.threads }}
+            - run: |
+                /opt/iarsystems/bxrl78/common/bin/iarbuild \
+                  targets/rl78/test-crc16.ewp -build "Debug" -log all -parallel ${{ env.threads }}
+            - run: |
+                /opt/iarsystems/bxrl78/common/bin/iarbuild \
+                  targets/rl78/test-crc32.ewp -build "Debug" -log all -parallel ${{ env.threads }}
