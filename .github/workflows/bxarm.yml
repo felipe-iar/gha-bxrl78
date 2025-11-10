@@ -1,0 +1,31 @@
+name: BXARM GHA CI
+
+on:
+  workflow_dispatch:
+  push:
+
+env:
+  threads: 4
+
+jobs:
+    build-bxarm:
+        runs-on: [ self-hosted, linux ]
+        container:
+            image: ghcr.io/fae-emea/bxarm
+            options: "--hostname arm-build-agent-018"
+            volumes:
+            - LMS2:/usr/local/etc/IARSystems
+        steps:
+            - uses: actions/checkout@v5
+              with:
+                repository: iarsystems/ewp-workspaces-ci
+            - run:  /opt/iarsystems/bxarm/arm/bin/iccarm --version
+            - run: |
+                /opt/iarsystems/bxarm/common/bin/iarbuild \
+                  targets/arm/library.ewp -build "Debug" -log all -parallel ${{ env.threads }}
+            - run: |
+                /opt/iarsystems/bxarm/common/bin/iarbuild \
+                  targets/arm/test-crc16.ewp -build "Debug" -log all -parallel ${{ env.threads }}
+            - run: |
+                /opt/iarsystems/bxarm/common/bin/iarbuild \
+                  targets/arm/test-crc32.ewp -build "Debug" -log all -parallel ${{ env.threads }}
